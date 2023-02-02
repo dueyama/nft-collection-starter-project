@@ -1,4 +1,6 @@
 // App.js
+import myEpicNft from "./utils/MyEpicNFT.json";
+import { ethers } from "ethers";
 // useEffect と useState 関数を React.js からインポートしています。
 import React, { useEffect, useState } from "react";
 import "./styles/App.css";
@@ -68,6 +70,35 @@ const App = () => {
     }
   };
 
+  const askContractToMintNft = async () => {
+    const CONTRACT_ADDRESS =
+      "0x0bCe31C7675cdd45Bd7F0e643631091F3A82d90f";
+    try {
+      const { ethereum } = window;
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const connectedContract = new ethers.Contract(
+          CONTRACT_ADDRESS,
+          myEpicNft.abi,
+          signer
+        );
+        console.log("Going to pop wallet now to pay gas...");
+        let nftTxn = await connectedContract.makeAnEpicNFT();
+        console.log("Mining...please wait.");
+        await nftTxn.wait();
+  
+        console.log(
+          `Mined, see transaction: https://goerli.etherscan.io/tx/${nftTxn.hash}`
+        );
+      } else {
+        console.log("Ethereum object doesn't exist!");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   // renderNotConnectedContainer メソッドを定義します。
   const renderNotConnectedContainer = () => (
     <button
@@ -95,7 +126,7 @@ const App = () => {
           {currentAccount === "" ? (
             renderNotConnectedContainer()
           ) : (
-            <button onClick={null} className="cta-button connect-wallet-button">
+            <button onClick={askContractToMintNft} className="cta-button connect-wallet-button">
               Mint NFT
             </button>
           )}
